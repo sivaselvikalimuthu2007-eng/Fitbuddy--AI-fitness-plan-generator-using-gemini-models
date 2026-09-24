@@ -1,0 +1,7 @@
+{
+  "name": "FitBuddy - AI Fitness & Wellness Planner",
+  "description": "Personalized AI workout and wellness plans powered by Google Gemini, dynamically adapted to your goals, equipment, and schedule.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
