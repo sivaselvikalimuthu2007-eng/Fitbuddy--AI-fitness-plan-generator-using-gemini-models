@@ -1,0 +1,356 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Admin Dashboard - Users & Workout Plans{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-mono text-emerald-400 mb-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        <span>FITBUDDY ATHLETE & WORKOUT REPOSITORY</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Admin Dashboard</h1>
+      <p class="text-sm text-slate-400 mt-1">
+        Centralized monitoring for registered athletes, AI-generated workout plans, feedback adaptations, and nutrition protocols.
+      </p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex items-center gap-2.5">
+      <a href="/" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>Generate New Plan in App</span>
+      </a>
+      <a href="/admin/database" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+        </svg>
+        <span>SQLAlchemy Schema</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Metric Cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <!-- Card 1: Users -->
+    <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between text-slate-400 text-xs font-mono mb-2">
+        <span>TOTAL ATHLETES</span>
+        <div class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        </div>
+      </div>
+      <div class="text-2xl sm:text-3xl font-extrabold text-white">{{ stats.totalUsers }}</div>
+      <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+        <span class="text-emerald-400">Stored in SQLite</span> table <code class="font-mono text-slate-300">users</code>
+      </div>
+    </div>
+
+    <!-- Card 2: Workout Plans -->
+    <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between text-slate-400 text-xs font-mono mb-2">
+        <span>WORKOUT PLANS</span>
+        <div class="p-1.5 rounded-lg bg-sky-500/10 text-sky-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+      </div>
+      <div class="text-2xl sm:text-3xl font-extrabold text-white">{{ stats.totalPlans }}</div>
+      <div class="text-[11px] text-slate-400 mt-1">
+        Across 4 Core Goal Pillars & Intensity Tiers
+      </div>
+    </div>
+
+    <!-- Card 3: Intensity Breakdown -->
+    <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between text-slate-400 text-xs font-mono mb-2">
+        <span>INTENSITY BREAKDOWN</span>
+        <div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 font-mono text-sm">
+        <span class="text-sky-400 font-bold" title="Low Intensity">{{ stats.intensityDistribution.low }} Low</span>
+        <span class="text-slate-600">/</span>
+        <span class="text-emerald-400 font-bold" title="Medium Intensity">{{ stats.intensityDistribution.medium }} Med</span>
+        <span class="text-slate-600">/</span>
+        <span class="text-amber-400 font-bold" title="High Intensity">{{ stats.intensityDistribution.high }} High</span>
+      </div>
+      <div class="text-[11px] text-slate-400 mt-1">
+        RPE 4-6 (Low) · RPE 6.5-8 (Med) · RPE 8.5-10 (High)
+      </div>
+    </div>
+
+    <!-- Card 4: Feedback Adaptations -->
+    <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between text-slate-400 text-xs font-mono mb-2">
+        <span>FEEDBACK ADAPTATIONS</span>
+        <div class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </div>
+      </div>
+      <div class="text-2xl sm:text-3xl font-extrabold text-white">{{ stats.totalFeedbacks }}</div>
+      <div class="text-[11px] text-slate-400 mt-1">
+        Injury, Fatigue & Intensity Re-calibrations
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter and Search Bar -->
+  <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+    <form method="GET" action="/admin" class="flex flex-col md:flex-row gap-3 items-center justify-between">
+      <!-- Search Input -->
+      <div class="w-full md:w-1/3 relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+        <input
+          type="text"
+          name="search"
+          value="{{ currentFilters.search or '' }}"
+          placeholder="Search by athlete name or email..."
+          class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+        />
+      </div>
+
+      <!-- Filters: Goal & Intensity -->
+      <div class="w-full md:w-auto flex flex-wrap items-center gap-2.5">
+        <!-- Goal Select -->
+        <select
+          name="goal"
+          class="bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-500"
+        >
+          <option value="all" {% if currentFilters.goal == 'all' or not currentFilters.goal %}selected{% endif %}>All Primary Goals</option>
+          <option value="fat_loss" {% if currentFilters.goal == 'fat_loss' %}selected{% endif %}>Weight Loss (Fat Loss)</option>
+          <option value="muscle_gain" {% if currentFilters.goal == 'muscle_gain' %}selected{% endif %}>Muscle Gain (Hypertrophy)</option>
+          <option value="mobility_flexibility" {% if currentFilters.goal == 'mobility_flexibility' %}selected{% endif %}>Flexibility & Mobility</option>
+          <option value="general_health" {% if currentFilters.goal == 'general_health' %}selected{% endif %}>General Health & Longevity</option>
+        </select>
+
+        <!-- Intensity Select -->
+        <select
+          name="intensity"
+          class="bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-500"
+        >
+          <option value="all" {% if currentFilters.intensity == 'all' or not currentFilters.intensity %}selected{% endif %}>All Intensity Options</option>
+          <option value="low" {% if currentFilters.intensity == 'low' %}selected{% endif %}>Low Intensity (RPE 4-6)</option>
+          <option value="medium" {% if currentFilters.intensity == 'medium' %}selected{% endif %}>Medium Intensity (RPE 6.5-8)</option>
+          <option value="high" {% if currentFilters.intensity == 'high' %}selected{% endif %}>High Intensity (RPE 8.5-10)</option>
+        </select>
+
+        <button type="submit" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs rounded-xl transition-colors">
+          Filter
+        </button>
+
+        {% if currentFilters.search or currentFilters.goal != 'all' or currentFilters.intensity != 'all' %}
+          <a href="/admin" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl border border-slate-700 transition-colors">
+            Reset
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Users & Plans Table -->
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+    <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
+      <div>
+        <h2 class="text-base sm:text-lg font-bold text-white">Registered Athletes & Workout Plans</h2>
+        <p class="text-xs text-slate-400">Total of {{ users | length }} athlete record(s) loaded from SQLite.</p>
+      </div>
+      <div class="text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
+        Table: <span class="text-white">users</span> ⟷ <span class="text-white">workout_plans</span>
+      </div>
+    </div>
+
+    <!-- Responsive Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-mono text-[11px] uppercase tracking-wider">
+            <th class="p-4">Athlete Profile</th>
+            <th class="p-4">Primary Goal</th>
+            <th class="p-4">Workout Intensity</th>
+            <th class="p-4">Equipment & Schedule</th>
+            <th class="p-4">Workout Plan</th>
+            <th class="p-4">Activity</th>
+            <th class="p-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60">
+          {% for u in users %}
+          <tr class="hover:bg-slate-800/40 transition-colors">
+            <!-- Athlete Profile -->
+            <td class="p-4">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-sm text-emerald-400">
+                  {{ u.name[0] }}
+                </div>
+                <div>
+                  <div class="font-bold text-white text-sm hover:text-emerald-400 transition-colors">
+                    <a href="/admin/user/{{ u.id }}">{{ u.name }}</a>
+                  </div>
+                  <div class="text-[11px] text-slate-400 font-mono">{{ u.email or 'No email' }}</div>
+                  <div class="text-[10px] text-slate-400 mt-0.5">
+                    {{ u.age }}y · {{ u.gender }} · {{ u.weight_kg }}kg · {{ u.height_cm }}cm
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Primary Goal -->
+            <td class="p-4">
+              <span class="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold
+                {% if u.primary_goal == 'fat_loss' %}bg-rose-500/10 text-rose-400 border border-rose-500/20
+                {% elif u.primary_goal == 'muscle_gain' %}bg-amber-500/10 text-amber-400 border border-amber-500/20
+                {% elif u.primary_goal == 'mobility_flexibility' %}bg-purple-500/10 text-purple-400 border border-purple-500/20
+                {% else %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% endif %}">
+                {% if u.primary_goal == 'fat_loss' %}Weight Loss
+                {% elif u.primary_goal == 'muscle_gain' %}Muscle Gain
+                {% elif u.primary_goal == 'mobility_flexibility' %}Flexibility
+                {% else %}General Health{% endif %}
+              </span>
+              <div class="text-[10px] text-slate-400 mt-1 capitalize">{{ u.experience_level }}</div>
+            </td>
+
+            <!-- Workout Intensity -->
+            <td class="p-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold
+                {% if u.workout_intensity == 'low' %}bg-sky-500/10 text-sky-400 border border-sky-500/30
+                {% elif u.workout_intensity == 'high' %}bg-amber-500/10 text-amber-400 border border-amber-500/30
+                {% else %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/30{% endif %}">
+                <span class="w-1.5 h-1.5 rounded-full
+                  {% if u.workout_intensity == 'low' %}bg-sky-400
+                  {% elif u.workout_intensity == 'high' %}bg-amber-400
+                  {% else %}bg-emerald-400{% endif %}"></span>
+                {{ (u.workout_intensity or 'medium') | upper }}
+              </span>
+              <div class="text-[10px] text-slate-400 font-mono mt-1">
+                {% if u.workout_intensity == 'low' %}RPE 4-6 (Joint-safe)
+                {% elif u.workout_intensity == 'high' %}RPE 8.5-10 (Max output)
+                {% else %}RPE 6.5-8 (Balanced){% endif %}
+              </div>
+            </td>
+
+            <!-- Equipment & Schedule -->
+            <td class="p-4">
+              <div class="text-slate-300 font-mono text-[11px]">
+                {{ u.days_per_week }} days/wk · {{ u.minutes_per_session }} min
+              </div>
+              <div class="text-[10px] text-slate-400 mt-1 line-clamp-1">
+                {% for eq in u.availableEquipment %}
+                  <span class="bg-slate-800 text-slate-300 px-1 py-0.5 rounded mr-1">{{ eq | replace('_', ' ') }}</span>
+                {% endfor %}
+              </div>
+            </td>
+
+            <!-- Workout Plan -->
+            <td class="p-4">
+              {% if u.latest_plan_title %}
+                <div class="font-semibold text-white text-xs max-w-xs truncate">{{ u.latest_plan_title }}</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">
+                  {{ u.plans_count }} plan(s) · Generated {{ u.latest_plan_date | truncate(10, true, "") }}
+                </div>
+              {% else %}
+                <span class="text-slate-400 italic">No plan generated yet</span>
+              {% endif %}
+            </td>
+
+            <!-- Activity Logs -->
+            <td class="p-4 font-mono text-[11px]">
+              <div class="text-emerald-400 font-semibold">{{ u.sessions_count }} Session(s) Logged</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">SQLite persisted</div>
+            </td>
+
+            <!-- Actions -->
+            <td class="p-4 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <a
+                  href="/admin/user/{{ u.id }}"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition-colors"
+                >
+                  View Details
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="p-8 text-center text-slate-400">
+              No athletes found matching the selected filter criteria.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Feedback-Based Adaptations Log -->
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+      <div>
+        <div class="flex items-center gap-2 text-xs font-mono text-purple-400 mb-0.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+          </svg>
+          <span>FEEDBACK-BASED MODIFICATIONS (SQLITE & GEMINI AI)</span>
+        </div>
+        <h3 class="text-base font-bold text-white">Recent Plan Modifications From User Feedback</h3>
+      </div>
+      <span class="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-1 rounded-md border border-slate-700">
+        Table: feedback_logs
+      </span>
+    </div>
+
+    {% if recentFeedbacks and recentFeedbacks | length > 0 %}
+      <div class="space-y-3">
+        {% for fb in recentFeedbacks %}
+          <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs font-bold text-white">{{ fb.athlete_name or 'Athlete' }}</span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  Type: {{ fb.adaptation_type }}
+                </span>
+                {% if fb.target_intensity %}
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    Intensity: {{ fb.target_intensity | upper }}
+                  </span>
+                {% endif %}
+                <span class="text-[10px] text-slate-400 font-mono">{{ fb.created_at | truncate(16, true, "") }}</span>
+              </div>
+              <p class="text-xs text-slate-300 italic">"{{ fb.feedback_text }}"</p>
+              {% if fb.adaptation_summary %}
+                <p class="text-xs text-emerald-400 mt-1">✓ {{ fb.adaptation_summary }}</p>
+              {% endif %}
+            </div>
+            <a href="/admin/user/{{ fb.user_id }}" class="self-start sm:self-center text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors">
+              Inspect Plan →
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-xs text-slate-400 italic">No feedback adaptation logs recorded yet.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

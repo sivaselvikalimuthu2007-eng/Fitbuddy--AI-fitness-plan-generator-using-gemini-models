@@ -17,6 +17,7 @@ export const STARTER_PROFILES: { label: string; description: string; profile: Us
       limitations: ['Tight hip flexors from desk work'],
       customLimitation: '',
       workoutPreferences: ['Supersets', 'Functional mobility', 'HIIT finisher'],
+      workoutIntensity: 'medium',
       targetTimelineWeeks: 8,
       wellnessPreferences: {
         dietaryStyle: 'High protein balanced',
@@ -107,6 +108,7 @@ export const INITIAL_SAMPLE_PLAN: FitnessPlan = {
   id: 'plan-starter-default',
   title: 'Metabolic Tone & Hypertrophy Split',
   overview: 'A high-efficiency 4-day hybrid split designed for balanced muscular hypertrophy, metabolic fat loss, and spinal posture alignment with home dumbbells and resistance bands.',
+  intensity: 'medium',
   generatedAt: new Date().toISOString(),
   profileSnapshot: STARTER_PROFILES[0].profile,
   splitType: 'Upper Body Tone & Lower Body Conditioning Split (4 Days)',

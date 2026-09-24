@@ -9,6 +9,8 @@ export type PrimaryGoal =
 
 export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced' | 'returning';
 
+export type WorkoutIntensity = 'low' | 'medium' | 'high';
+
 export type EquipmentType =
   | 'bodyweight'
   | 'dumbbells'
@@ -27,6 +29,7 @@ export interface UserProfile {
   primaryGoal: PrimaryGoal;
   secondaryGoals: string[];
   experienceLevel: ExperienceLevel;
+  workoutIntensity?: WorkoutIntensity;
   availableEquipment: EquipmentType[];
   daysPerWeek: number;
   minutesPerSession: number;
@@ -75,6 +78,7 @@ export interface WorkoutDay {
   dayTitle: string;
   focus: string;
   isRestDay: boolean;
+  intensity?: WorkoutIntensity;
   estimatedDurationMin: number;
   estimatedCaloriesBurn: number;
   warmup: {
@@ -115,6 +119,7 @@ export interface FitnessPlan {
   title: string;
   overview: string;
   generatedAt: string;
+  intensity?: WorkoutIntensity;
   profileSnapshot: UserProfile;
   splitType: string;
   weeklySchedule: WorkoutDay[];
@@ -145,4 +150,32 @@ export interface WorkoutSessionLog {
   }[];
   rpeFeedback: number;
   userNotes?: string;
+}
+
+export interface NutritionRecommendation {
+  id?: string;
+  userId?: string;
+  planId?: string;
+  dailyCalories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatsGrams: number;
+  hydrationLiters: number;
+  mealTimingProtocol: string;
+  supplementGuidance: string;
+  sleepRecoveryProtocol: string;
+  activeRecoveryProtocol: string;
+  generatedAt?: string;
+}
+
+export interface FeedbackLogItem {
+  id: string;
+  userId: string;
+  planId: string;
+  feedbackText: string;
+  adaptationType: string;
+  targetIntensity?: WorkoutIntensity;
+  targetDayNumber?: number;
+  adaptationSummary?: string;
+  createdAt: string;
 }

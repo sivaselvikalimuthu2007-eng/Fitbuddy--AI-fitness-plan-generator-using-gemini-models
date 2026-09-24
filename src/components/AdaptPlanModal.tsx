@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Sparkles, RefreshCw, AlertCircle, History, Clock, ArrowRight, Check } from 'lucide-react';
-import { FitnessPlan } from '../types/fitness';
+import { X, Sparkles, RefreshCw, AlertCircle, History, Clock, ArrowRight, Check, Zap, Gauge } from 'lucide-react';
+import { FitnessPlan, WorkoutIntensity } from '../types/fitness';
+import { WORKOUT_INTENSITY_TIERS } from '../data/intensityData';
 
 interface AdaptPlanModalProps {
   currentPlan: FitnessPlan;
@@ -13,8 +14,10 @@ export const AdaptPlanModal: React.FC<AdaptPlanModalProps> = ({
   onClose,
   onPlanAdapted,
 }) => {
+  const currentIntensity = currentPlan.profileSnapshot?.workoutIntensity || currentPlan.intensity || 'medium';
+  const [targetIntensity, setTargetIntensity] = useState<WorkoutIntensity>(currentIntensity);
   const [feedbackPrompt, setFeedbackPrompt] = useState('');
-  const [adaptationType, setAdaptationType] = useState<string>('injury');
+  const [adaptationType, setAdaptationType] = useState<string>('intensity');
   const [selectedDayNumber, setSelectedDayNumber] = useState<number | 'all'>('all');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +75,7 @@ export const AdaptPlanModal: React.FC<AdaptPlanModalProps> = ({
           currentPlan,
           feedbackPrompt,
           adaptationType,
+          targetIntensity,
           targetDayNumber: selectedDayNumber === 'all' ? undefined : selectedDayNumber,
         }),
       });
@@ -88,6 +92,24 @@ export const AdaptPlanModal: React.FC<AdaptPlanModalProps> = ({
       setError(err.message || 'Something went wrong while adapting the plan.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSelectIntensityPreset = (intensity: WorkoutIntensity) => {
+    setTargetIntensity(intensity);
+    setAdaptationType('intensity');
+    if (intensity === 'low') {
+      setFeedbackPrompt(
+        'Recalibrate workout plan to Low Intensity (RPE 4–6). Scale volume to 2–3 sets per exercise, extend rest intervals to 75–90 seconds, keep tempos controlled, and focus on joint decompression and active recovery.'
+      );
+    } else if (intensity === 'medium') {
+      setFeedbackPrompt(
+        'Recalibrate workout plan to Medium Intensity (RPE 6.5–8). Balance volume at 3–4 working sets per exercise with standard rest intervals (60–90s) and steady progressive overload with 2–3 reps in reserve.'
+      );
+    } else {
+      setFeedbackPrompt(
+        'Recalibrate workout plan to High Intensity (RPE 8.5–10). Elevate volume to 4–5 sets or high-density supersets, shorten rest to 30–45 seconds for metabolic conditioning, and push near-failure sets (1–2 RIR).'
+      );
     }
   };
 
@@ -115,6 +137,44 @@ export const AdaptPlanModal: React.FC<AdaptPlanModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 my-4">
+          {/* Quick Intensity Tier Calibrator */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1.5">
+                <Gauge className="w-3.5 h-3.5" />
+                <span>Calibrate Workout Intensity</span>
+              </label>
+              <span className="text-[11px] text-slate-400">Low, Medium, or High Effort</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {WORKOUT_INTENSITY_TIERS.map((tier) => {
+                const isSelected = targetIntensity === tier.id;
+                return (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    onClick={() => handleSelectIntensityPreset(tier.id)}
+                    className={`p-2.5 rounded-xl border text-left transition-all ${
+                      isSelected
+                        ? `${tier.colorClass.bg} ${tier.colorClass.border} text-white shadow-sm ring-1 ${tier.colorClass.ring}`
+                        : 'bg-slate-950/40 border-slate-800 hover:border-slate-700 text-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between font-bold text-xs mb-0.5">
+                      <div className="flex items-center gap-1">
+                        <Zap className={`w-3.5 h-3.5 ${tier.colorClass.text}`} />
+                        <span>{tier.label}</span>
+                      </div>
+                      {isSelected && <Check className="w-3 h-3 text-emerald-400" />}
+                    </div>
+                    <div className={`text-[10px] font-mono ${tier.colorClass.text}`}>{tier.rpeRange}</div>
+                    <div className="text-[10px] text-slate-400 mt-1 line-clamp-1">{tier.volumeGuideline}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Preset Buttons */}
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-2">

@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import {
   Calendar, Clock, Flame, Dumbbell, Play, Sparkles,
   ChevronRight, RefreshCw, AlertCircle, Printer, Eye,
-  ShieldCheck, Info, Check, ArrowRight
+  ShieldCheck, Info, Check, ArrowRight, Zap, Gauge
 } from 'lucide-react';
-import { FitnessPlan, WorkoutDay, Exercise, UserProfile, PrimaryGoal } from '../types/fitness';
+import { FitnessPlan, WorkoutDay, Exercise, UserProfile, PrimaryGoal, WorkoutIntensity } from '../types/fitness';
 import { GoalPillarSelector } from './GoalPillarSelector';
+import { WorkoutIntensityControl } from './WorkoutIntensityControl';
+import { getIntensityTier } from '../data/intensityData';
 
 interface PlanOverviewProps {
   plan: FitnessPlan;
@@ -15,6 +17,9 @@ interface PlanOverviewProps {
   onOpenProfileModal: () => void;
   onSelectGoalPlan?: (plan: FitnessPlan) => void;
   onOpenGeneratorForGoal?: (goal: PrimaryGoal) => void;
+  onIntensityChange?: (newIntensity: WorkoutIntensity) => void;
+  onAdaptWithAI?: (newIntensity: WorkoutIntensity) => void;
+  isAdaptingIntensity?: boolean;
 }
 
 export const PlanOverview: React.FC<PlanOverviewProps> = ({
@@ -25,8 +30,14 @@ export const PlanOverview: React.FC<PlanOverviewProps> = ({
   onOpenProfileModal,
   onSelectGoalPlan,
   onOpenGeneratorForGoal,
+  onIntensityChange,
+  onAdaptWithAI,
+  isAdaptingIntensity = false,
 }) => {
   const [selectedDayNum, setSelectedDayNum] = useState<number>(1);
+
+  const currentIntensity = plan.intensity || plan.profileSnapshot.workoutIntensity || 'medium';
+  const intensityTier = getIntensityTier(currentIntensity);
 
   const selectedDay = plan.weeklySchedule.find((d) => d.dayNumber === selectedDayNum) || plan.weeklySchedule[0];
   const workoutDaysCount = plan.weeklySchedule.filter((d) => !d.isRestDay).length;
@@ -65,6 +76,13 @@ export const PlanOverview: React.FC<PlanOverviewProps> = ({
               <span aria-hidden="true">·</span>
               <span>Goal: {plan.profileSnapshot.primaryGoal.replace('_', ' ')}</span>
               <span aria-hidden="true">·</span>
+              <span className="flex items-center gap-1">
+                <span>Intensity:</span>
+                <span className={`font-mono font-bold ${intensityTier.colorClass.text}`}>
+                  {intensityTier.label} ({intensityTier.rpeRange})
+                </span>
+              </span>
+              <span aria-hidden="true">·</span>
               <span>Equip: {plan.profileSnapshot.availableEquipment.join(', ')}</span>
             </div>
           </div>
@@ -98,6 +116,16 @@ export const PlanOverview: React.FC<PlanOverviewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Workout Intensity Options (Low, Medium, High) Controls */}
+      {onIntensityChange && (
+        <WorkoutIntensityControl
+          currentIntensity={currentIntensity}
+          onIntensityChange={onIntensityChange}
+          onAdaptWithAI={onAdaptWithAI}
+          isAdapting={isAdaptingIntensity}
+        />
+      )}
 
       {/* Core Fitness Goal Pillars Switcher & Science Matrix */}
       {onSelectGoalPlan && onOpenGeneratorForGoal && (
@@ -139,7 +167,12 @@ export const PlanOverview: React.FC<PlanOverviewProps> = ({
                   {day.isRestDay ? (
                     <span className="text-[10px] text-indigo-400">Rest</span>
                   ) : (
-                    <span className="text-[10px] text-amber-400 font-bold">{day.estimatedDurationMin}m</span>
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[9px] font-bold uppercase px-1 rounded ${getIntensityTier(day.intensity || currentIntensity).colorClass.badge}`}>
+                        {getIntensityTier(day.intensity || currentIntensity).shortLabel}
+                      </span>
+                      <span className="text-[10px] text-amber-400 font-bold">{day.estimatedDurationMin}m</span>
+                    </div>
                   )}
                 </div>
 
@@ -166,10 +199,18 @@ export const PlanOverview: React.FC<PlanOverviewProps> = ({
           {/* Day Title & Primary Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
             <div>
-              <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 mb-1">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-emerald-400 mb-1">
                 <span>DAY {selectedDay.dayNumber} FOCUS</span>
                 <span>·</span>
                 <span>{selectedDay.focus}</span>
+                {!selectedDay.isRestDay && (
+                  <>
+                    <span>·</span>
+                    <span className={`px-2 py-0.5 rounded border text-[11px] font-bold ${getIntensityTier(selectedDay.intensity || currentIntensity).colorClass.badge}`}>
+                      {getIntensityTier(selectedDay.intensity || currentIntensity).label} ({getIntensityTier(selectedDay.intensity || currentIntensity).rpeRange})
+                    </span>
+                  </>
+                )}
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 {selectedDay.dayTitle}
@@ -345,6 +386,44 @@ export const PlanOverview: React.FC<PlanOverviewProps> = ({
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {/* Feedback-Based Workout Plan Modification History */}
+      {plan.adaptationHistory && plan.adaptationHistory.length > 0 && (
+        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+              <span className="text-xs font-mono font-bold text-purple-400 uppercase tracking-wider">
+                Feedback Adaptation Audit Trail
+              </span>
+              <span className="text-[11px] font-mono text-slate-400">
+                ({plan.adaptationHistory.length} modifications logged)
+              </span>
+            </div>
+            <button
+              onClick={onOpenAdaptModal}
+              className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 transition-colors"
+            >
+              <span>+ New Feedback Modification</span>
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {plan.adaptationHistory.map((item, idx) => (
+              <div
+                key={idx}
+                className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl text-xs space-y-1"
+              >
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="font-bold text-slate-200">{item.reason}</span>
+                  <span className="text-slate-400">{item.date}</span>
+                </div>
+                <p className="text-slate-400 text-[11px]">{item.changesSummary}</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

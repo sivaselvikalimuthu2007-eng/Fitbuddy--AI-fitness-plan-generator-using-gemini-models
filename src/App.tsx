@@ -8,7 +8,9 @@ import { ExerciseModal } from './components/ExerciseModal';
 import { AdaptPlanModal } from './components/AdaptPlanModal';
 import { ProfileSetupModal } from './components/ProfileSetupModal';
 import { CoachChatDrawer } from './components/CoachChatDrawer';
-import { FitnessPlan, UserProfile, WorkoutDay, Exercise, WorkoutSessionLog, PrimaryGoal } from './types/fitness';
+import { NutritionRecoveryPanel } from './components/NutritionRecoveryPanel';
+import { AdminModal } from './components/AdminModal';
+import { FitnessPlan, UserProfile, WorkoutDay, Exercise, WorkoutSessionLog, PrimaryGoal, WorkoutIntensity } from './types/fitness';
 import { INITIAL_SAMPLE_PLAN, STARTER_PROFILES } from './data/defaultData';
 import { Sparkles, CheckCircle2, MessageSquare, Dumbbell, ShieldCheck } from 'lucide-react';
 
@@ -44,15 +46,17 @@ export default function App() {
   });
 
   // Active Tab
-  const [currentTab, setCurrentTab] = useState<'plan' | 'wellness' | 'progress'>('plan');
+  const [currentTab, setCurrentTab] = useState<'plan' | 'nutrition' | 'wellness' | 'progress'>('plan');
 
   // Modal States
   const [activeWorkoutDay, setActiveWorkoutDay] = useState<WorkoutDay | null>(null);
   const [inspectedExercise, setInspectedExercise] = useState<{ exercise: Exercise; dayNumber: number } | null>(null);
   const [isAdaptModalOpen, setIsAdaptModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [generatorInitialGoal, setGeneratorInitialGoal] = useState<PrimaryGoal | undefined>(undefined);
   const [isCoachDrawerOpen, setIsCoachDrawerOpen] = useState(false);
+  const [isAdaptingIntensity, setIsAdaptingIntensity] = useState(false);
 
   // Notification Banner
   const [notification, setNotification] = useState<string | null>(null);
@@ -128,9 +132,99 @@ export default function App() {
     showNotification(`Substituted with "${newExercise.name}"`);
   };
 
+  const handleIntensityChange = (newIntensity: WorkoutIntensity) => {
+    setCurrentPlan((prev) => {
+      const updatedSchedule = prev.weeklySchedule.map((day) => {
+        if (day.isRestDay) return day;
+        const setsAdjust = newIntensity === 'low' ? 2 : newIntensity === 'high' ? 4 : 3;
+        const restAdjust = newIntensity === 'low' ? 75 : newIntensity === 'high' ? 45 : 60;
+        const rpeAdjust = newIntensity === 'low' ? 'RPE 5-6' : newIntensity === 'high' ? 'RPE 8.5-9.5' : 'RPE 7-8';
+        const calFactor = newIntensity === 'low' ? 0.85 : newIntensity === 'high' ? 1.25 : 1.0;
+
+        return {
+          ...day,
+          intensity: newIntensity,
+          estimatedCaloriesBurn: Math.round(day.estimatedCaloriesBurn * calFactor),
+          exercises: day.exercises.map((ex) => ({
+            ...ex,
+            sets: setsAdjust,
+            restSeconds: restAdjust,
+            rpe: rpeAdjust,
+          })),
+        };
+      });
+
+      return {
+        ...prev,
+        intensity: newIntensity,
+        profileSnapshot: {
+          ...prev.profileSnapshot,
+          workoutIntensity: newIntensity,
+        },
+        weeklySchedule: updatedSchedule,
+      };
+    });
+
+    setUserProfile((prev) => ({ ...prev, workoutIntensity: newIntensity }));
+    showNotification(`Plan adjusted to ${newIntensity.toUpperCase()} INTENSITY (Low, Medium, or High)`);
+  };
+
+  const handleAdaptWithAI = async (newIntensity: WorkoutIntensity) => {
+    setIsAdaptingIntensity(true);
+    try {
+      const prompt = `Please re-calibrate this entire fitness plan to ${newIntensity.toUpperCase()} INTENSITY. Adjust all sets, reps, rest periods, exercise selection, and RPE targets accordingly.`;
+      const res = await fetch('/api/adapt-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPlan,
+          feedbackPrompt: prompt,
+          adaptationType: 'intensity',
+          targetIntensity: newIntensity,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to adapt plan intensity');
+      }
+
+      const adaptedPlan: FitnessPlan = await res.json();
+      setCurrentPlan(adaptedPlan);
+      setUserProfile(adaptedPlan.profileSnapshot);
+      showNotification(`Successfully adapted to ${newIntensity.toUpperCase()} INTENSITY using Gemini AI!`);
+    } catch (e: any) {
+      console.warn('AI adaptation fallback to local calibration:', e);
+      handleIntensityChange(newIntensity);
+    } finally {
+      setIsAdaptingIntensity(false);
+    }
+  };
+
   const handleWorkoutCompleted = (log: WorkoutSessionLog) => {
     setWorkoutLogs((prev) => [log, ...prev]);
     showNotification(`Great job! ${log.dayTitle} logged successfully.`);
+
+    // Sync completed workout session to SQLite database
+    try {
+      fetch('/api/log-workout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userProfile.name ? userProfile.name.toLowerCase().replace(/\s+/g, '-') : 'user-active-athlete',
+          planId: currentPlan.id,
+          dayNumber: log.dayNumber,
+          dayTitle: log.dayTitle,
+          durationMinutes: log.durationMinutes,
+          perceivedRpe: log.rpeFeedback,
+          caloriesBurned: Math.round(log.durationMinutes * 8.5),
+          intensity: currentPlan.intensity || userProfile.workoutIntensity || 'medium',
+          notes: log.userNotes,
+        }),
+      }).catch((e) => console.warn('SQLite session sync note:', e));
+    } catch (e) {
+      console.warn('SQLite session sync note:', e);
+    }
   };
 
   const handleClearLogs = () => {
@@ -149,6 +243,7 @@ export default function App() {
         onOpenAdapt={() => setIsAdaptModalOpen(true)}
         onOpenCoach={() => setIsCoachDrawerOpen(true)}
         onOpenProfile={() => setIsProfileModalOpen(true)}
+        onOpenAdmin={() => setIsAdminModalOpen(true)}
         planTitle={currentPlan.title}
       />
 
@@ -173,6 +268,17 @@ export default function App() {
             onOpenProfileModal={() => setIsProfileModalOpen(true)}
             onSelectGoalPlan={handleSelectGoalPlan}
             onOpenGeneratorForGoal={handleOpenGeneratorForGoal}
+            onIntensityChange={handleIntensityChange}
+            onAdaptWithAI={handleAdaptWithAI}
+            isAdaptingIntensity={isAdaptingIntensity}
+          />
+        )}
+
+        {currentTab === 'nutrition' && (
+          <NutritionRecoveryPanel
+            plan={currentPlan}
+            profile={userProfile}
+            onPlanAdapted={handlePlanAdapted}
           />
         )}
 
@@ -263,6 +369,12 @@ export default function App() {
         onClose={() => setIsCoachDrawerOpen(false)}
         currentPlan={currentPlan}
         userProfile={userProfile}
+      />
+
+      {/* 6. SQLite Database & Jinja2 Admin Portal Modal */}
+      <AdminModal
+        isOpen={isAdminModalOpen}
+        onClose={() => setIsAdminModalOpen(false)}
       />
     </div>
   );

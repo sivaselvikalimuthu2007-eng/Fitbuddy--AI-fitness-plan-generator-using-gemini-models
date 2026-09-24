@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { WorkoutDay, Exercise, WorkoutSessionLog } from '../types/fitness';
 import { sound } from '../utils/audio';
+import { getIntensityTier } from '../data/intensityData';
 
 interface LiveWorkoutModalProps {
   day: WorkoutDay;
@@ -176,11 +177,19 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
         {/* Top Header Bar */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 flex-shrink-0">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-emerald-400">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-emerald-400">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>LIVE WORKOUT MODE</span>
               <span>·</span>
               <span>Day {day.dayNumber}</span>
+              {day.intensity && (
+                <>
+                  <span>·</span>
+                  <span className={`px-2 py-0.5 rounded border text-[11px] font-bold ${getIntensityTier(day.intensity).colorClass.badge}`}>
+                    {getIntensityTier(day.intensity).label} ({getIntensityTier(day.intensity).rpeRange})
+                  </span>
+                </>
+              )}
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-white mt-0.5">{day.dayTitle}</h2>
           </div>

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
   X, Sparkles, Dumbbell, ShieldAlert, HeartPulse, Clock, Calendar,
-  Activity, User, Check, RefreshCw, AlertCircle, Compass
+  Activity, User, Check, RefreshCw, AlertCircle, Compass, Zap, Gauge
 } from 'lucide-react';
-import { UserProfile, PrimaryGoal, ExperienceLevel, EquipmentType, FitnessPlan } from '../types/fitness';
+import { UserProfile, PrimaryGoal, ExperienceLevel, EquipmentType, FitnessPlan, WorkoutIntensity } from '../types/fitness';
 import { STARTER_PROFILES } from '../data/defaultData';
+import { WORKOUT_INTENSITY_TIERS } from '../data/intensityData';
 
 interface ProfileSetupModalProps {
   initialProfile: UserProfile;
@@ -20,10 +21,14 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   onPlanGenerated,
 }) => {
   const [profile, setProfile] = useState<UserProfile>(() => {
+    const base = {
+      ...initialProfile,
+      workoutIntensity: initialProfile.workoutIntensity || 'medium',
+    };
     if (targetGoal) {
-      return { ...initialProfile, primaryGoal: targetGoal };
+      return { ...base, primaryGoal: targetGoal };
     }
-    return initialProfile;
+    return base;
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -271,6 +276,55 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
                   );
                 })}
               </div>
+            </div>
+          </div>
+
+          {/* Section: Workout Intensity (Low, Medium, High) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1.5">
+                <Gauge className="w-3.5 h-3.5" />
+                <span>Workout Intensity Options</span>
+              </label>
+              <span className="text-[11px] text-slate-400">Low, Medium, or High Effort Tier</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {WORKOUT_INTENSITY_TIERS.map((tier) => {
+                const isSelected = (profile.workoutIntensity || 'medium') === tier.id;
+                return (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    onClick={() => setProfile({ ...profile, workoutIntensity: tier.id })}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      isSelected
+                        ? `${tier.colorClass.bg} ${tier.colorClass.border} text-white shadow-sm ring-1 ${tier.colorClass.ring}`
+                        : 'bg-slate-950/50 border-slate-800 hover:border-slate-700 text-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5 font-bold text-xs">
+                        <Zap className={`w-3.5 h-3.5 ${tier.colorClass.text}`} />
+                        <span className={isSelected ? 'text-white' : 'text-slate-200'}>{tier.label}</span>
+                      </div>
+                      {isSelected ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <span className="text-[10px] font-mono text-slate-500">{tier.shortLabel}</span>
+                      )}
+                    </div>
+                    <div className="text-[10px] font-mono text-slate-400 mb-1">
+                      <span className={`font-semibold ${tier.colorClass.text}`}>{tier.rpeRange}</span>
+                      <span className="mx-1">·</span>
+                      <span>{tier.heartRateZone.split(' ')[0]}</span>
+                    </div>
+                    <div className="text-[11px] text-slate-400 leading-snug">{tier.tagline}</div>
+                    <div className="mt-2 pt-1.5 border-t border-slate-800/80 text-[10px] text-slate-400 font-mono">
+                      {tier.volumeGuideline.split('·')[0].trim()} · {tier.restIntervals.split(' ')[0]} rest
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

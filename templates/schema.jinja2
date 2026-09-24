@@ -1,0 +1,165 @@
+{% extends "base.jinja2" %}
+
+{% block title %}SQLite & SQLAlchemy Architecture{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-mono text-sky-400 mb-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+        </svg>
+        <span>SQLITE DATABASE & SQLALCHEMY ORM REPOSITORY</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Database Architecture</h1>
+      <p class="text-sm text-slate-400 mt-1">
+        Persistent storage in <code class="font-mono text-emerald-400">fitbuddy.db</code> modeled with Python SQLAlchemy ORM.
+      </p>
+    </div>
+
+    <a href="/admin" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors">
+      ← Back to Admin Dashboard
+    </a>
+  </div>
+
+  <!-- Tables Overview -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Table 1: Users -->
+    <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+      <div class="flex items-center justify-between font-mono text-xs mb-2">
+        <span class="text-emerald-400 font-bold">TABLE: users</span>
+        <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded">{{ userCount }} rows</span>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">Stores athlete demographics, primary goal, workout intensity tier, equipment, and movement limitations.</p>
+      <div class="text-[11px] font-mono text-slate-300 space-y-1 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+        <div>• id (TEXT PK)</div>
+        <div>• name, email (TEXT)</div>
+        <div>• primary_goal (TEXT)</div>
+        <div>• workout_intensity (TEXT)</div>
+        <div>• equipment_json (TEXT)</div>
+        <div>• limitations_json (TEXT)</div>
+      </div>
+    </div>
+
+    <!-- Table 2: Workout Plans -->
+    <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+      <div class="flex items-center justify-between font-mono text-xs mb-2">
+        <span class="text-sky-400 font-bold">TABLE: workout_plans</span>
+        <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded">{{ planCount }} rows</span>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">Stores 7-day schedules, exercise sets/reps/RPE, tempo, progression strategies, and split architecture.</p>
+      <div class="text-[11px] font-mono text-slate-300 space-y-1 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+        <div>• id (TEXT PK)</div>
+        <div>• user_id (FK -> users.id)</div>
+        <div>• title, overview (TEXT)</div>
+        <div>• intensity (low/med/high)</div>
+        <div>• weekly_schedule_json (TEXT)</div>
+        <div>• adaptation_history_json (TEXT)</div>
+      </div>
+    </div>
+
+    <!-- Table 3: Nutrition & Recovery -->
+    <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+      <div class="flex items-center justify-between font-mono text-xs mb-2">
+        <span class="text-amber-400 font-bold">TABLE: nutrition_recommendations</span>
+        <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded">{{ nutritionCount }} rows</span>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">AI-generated caloric requirements, macronutrient splits, meal timing, and sleep/recovery protocols.</p>
+      <div class="text-[11px] font-mono text-slate-300 space-y-1 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+        <div>• id (TEXT PK)</div>
+        <div>• user_id (FK -> users.id)</div>
+        <div>• daily_calories (INT)</div>
+        <div>• protein, carbs, fats (INT)</div>
+        <div>• hydration_liters (REAL)</div>
+        <div>• meal_timing_protocol (TEXT)</div>
+        <div>• sleep_recovery_protocol (TEXT)</div>
+      </div>
+    </div>
+
+    <!-- Table 4: Feedback Logs -->
+    <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+      <div class="flex items-center justify-between font-mono text-xs mb-2">
+        <span class="text-purple-400 font-bold">TABLE: feedback_logs</span>
+        <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded">{{ feedbackCount }} rows</span>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">Tracks athlete feedback prompts and AI plan modifications for joints, fatigue, and intensity adjustments.</p>
+      <div class="text-[11px] font-mono text-slate-300 space-y-1 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+        <div>• id (TEXT PK)</div>
+        <div>• user_id (FK -> users.id)</div>
+        <div>• plan_id (FK -> workout_plans.id)</div>
+        <div>• feedback_text (TEXT)</div>
+        <div>• adaptation_type (TEXT)</div>
+        <div>• target_intensity (TEXT)</div>
+      </div>
+    </div>
+
+    <!-- Table 5: Workout Sessions -->
+    <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+      <div class="flex items-center justify-between font-mono text-xs mb-2">
+        <span class="text-rose-400 font-bold">TABLE: workout_sessions</span>
+        <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded">{{ sessionCount }} rows</span>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">Logs completed workouts with actual duration, perceived RPE, and calories burned.</p>
+      <div class="text-[11px] font-mono text-slate-300 space-y-1 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+        <div>• id (TEXT PK)</div>
+        <div>• user_id (FK -> users.id)</div>
+        <div>• duration_minutes (INT)</div>
+        <div>• perceived_rpe (REAL)</div>
+        <div>• calories_burned (INT)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SQLAlchemy Python Code Snippet -->
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-mono text-emerald-400 font-bold">PYTHON SQLALCHEMY ORM DEFINITIONS</span>
+        <span class="text-slate-500">·</span>
+        <span class="text-xs text-slate-400">database/models.py</span>
+      </div>
+      <span class="text-xs font-mono text-slate-400 bg-slate-800 px-2.5 py-1 rounded">sqlite:///fitbuddy.db</span>
+    </div>
+    <pre class="bg-slate-950 p-4 rounded-xl text-xs font-mono text-emerald-300 overflow-x-auto leading-relaxed border border-slate-800/80">
+from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime, ForeignKey
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
+    primary_goal = Column(String, nullable=False)
+    workout_intensity = Column(String, default='medium') # low, medium, high
+    plans = relationship("WorkoutPlan", back_populates="user", cascade="all, delete-orphan")
+    feedbacks = relationship("FeedbackLog", back_populates="user", cascade="all, delete-orphan")
+    nutrition_recs = relationship("NutritionRecommendation", back_populates="user")
+
+class WorkoutPlan(Base):
+    __tablename__ = 'workout_plans'
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    title = Column(String, nullable=False)
+    intensity = Column(String, default='medium')
+    weekly_schedule_json = Column(Text, nullable=False)
+    user = relationship("User", back_populates="plans")
+
+class FeedbackLog(Base):
+    __tablename__ = 'feedback_logs'
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    feedback_text = Column(Text, nullable=False)
+    target_intensity = Column(String)
+    adaptation_summary = Column(Text)
+
+engine = create_engine("sqlite:///fitbuddy.db")
+Base.metadata.create_all(engine)
+    </pre>
+  </div>
+
+</div>
+{% endblock %}
